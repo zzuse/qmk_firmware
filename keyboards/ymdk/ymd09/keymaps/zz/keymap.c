@@ -23,7 +23,6 @@ enum custom_keycodes {
     GIT_STASH_POP,
     GIT_COMMIT,
     COPY_PASTE,
-    VIM_H_J,
 };
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -31,7 +30,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     uprintf("KL: kc: 0x%04X, col: %u, row: %u, pressed: %b, time: %u, interrupt: %b, count: %u\n", keycode, record->event.key.col, record->event.key.row, record->event.pressed, record->event.time, record->tap.interrupted, record->tap.count);
     uprintf("rgblight: mode: %u, hue: %u, sat: %u, val: %u\n", rgblight_get_mode(), rgblight_get_hue(), rgblight_get_sat(), rgblight_get_val());
 #endif
-    static uint16_t my_hash_timer;
     switch (keycode) {
         case GIT_STASH:
             if (record->event.pressed) {
@@ -53,20 +51,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 tap_code16(C(KC_C));
             } else {
                 tap_code16(C(KC_V));
-            }
-            break;
-        case VIM_H_J:
-            if(record->event.pressed) {
-               my_hash_timer = timer_read();
-                if(timer_elapsed(my_hash_timer) < TAPPING_TERM) {
-                    register_code(KC_J);
-                    //SEND_STRING("j");
-                } else {
-                    register_code(KC_H);
-                }
-            } else { //is released
-                unregister_code(KC_J);
-                unregister_code(KC_H);
             }
             break;
     }
@@ -94,7 +78,8 @@ typedef struct {
 enum {
     TAB_1,
     QUOT_LAYR,
-    SOME_OTHER_DANCE
+    VIM_J_H,
+    SOME_OTHER_DANCE,
 };
 
 td_state_t cur_dance(tap_dance_state_t *state);
@@ -102,6 +87,7 @@ void x_finished(tap_dance_state_t *state, void *user_data);
 void x_reset(tap_dance_state_t *state, void *user_data);
 void ql_finished(tap_dance_state_t *state, void *user_data);
 void ql_reset(tap_dance_state_t *state, void *user_data);
+void tap_j_hold_h(tap_dance_state_t *state, void *user_data);
 
 td_state_t cur_dance(tap_dance_state_t *state) {
     if(state->count == 1) {
@@ -129,8 +115,9 @@ static td_tap_t ql_tap_state = {
 };
 
 tap_dance_action_t tap_dance_actions[] = {
-    [TAB_1]= ACTION_TAP_DANCE_FN_ADVANCED(NULL, x_finished, x_reset),
-    [QUOT_LAYR] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, ql_finished, ql_reset)
+    [TAB_1]     = ACTION_TAP_DANCE_FN_ADVANCED(NULL, x_finished, x_reset),
+    [QUOT_LAYR] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, ql_finished, ql_reset),
+    [VIM_J_H]   = ACTION_TAP_DANCE_FN         (tap_j_hold_h),
 };
 
 // feature 3: key override
@@ -160,9 +147,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  *       /LSFT /TD(1)/SPACE/
  *      -------------------
  */
-  [WASD_LAYER] = LAYOUT(        TD(TAB_1), KC_W, KC_E,
-                                     KC_A, KC_S, KC_D,
-                                KC_LSFT, TD(QUOT_LAYR), KC_SPACE),
+  [WASD_LAYER] = LAYOUT(        TD(TAB_1),   KC_W,          KC_E,
+                                     KC_A,   KC_S,          KC_D,
+                                  KC_LSFT,   TD(QUOT_LAYR), KC_SPACE),
 /*
  *            ___________________
  *           /TD(0)/ W   /  E  /
@@ -184,9 +171,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  *       /  N  /TD(1)/SPACE/
  *      -------------------
  */
-  [VIM_LAYER] = LAYOUT(    TD(TAB_1), KC_I, KC_P,
-                             VIM_H_J, KC_K, KC_L,
-                             KC_N, TD(QUOT_LAYR), KC_SPACE),
+  [VIM_LAYER] = LAYOUT(    TD(TAB_1),   KC_I,          KC_P,
+                           TD(VIM_J_H), KC_K,          KC_L,
+                             KC_N,      TD(QUOT_LAYR), KC_SPACE),
 };
 
 // post init
@@ -268,4 +255,16 @@ void ql_finished(tap_dance_state_t *state, void *user_data) {
 
 void ql_reset(tap_dance_state_t *state, void *user_data) {
     ql_tap_state.state = TD_NONE;
+}
+
+void tap_j_hold_h(tap_dance_state_t *state, void *user_data) {
+    if (state->count == 1) {
+        if(state->interrupted || !state->pressed) {
+            tap_code16(KC_J);
+        }
+        else tap_code(KC_H);
+    } else if (state->count > 1) {
+        tap_code16(KC_J);
+    }
+    reset_tap_dance(state);
 }
