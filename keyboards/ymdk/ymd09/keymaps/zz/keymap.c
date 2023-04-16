@@ -58,13 +58,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case VIM_H_J:
             if(record->event.pressed) {
                my_hash_timer = timer_read();
-               unregister_code(KC_J);
-               register_code(KC_H);
-            } else {
-               unregister_code(KC_H);
-               if(timer_elapsed(my_hash_timer) < TAPPING_TERM) {
-                   SEND_STRING("j");
-               }
+                if(timer_elapsed(my_hash_timer) < TAPPING_TERM) {
+                    register_code(KC_J);
+                    //SEND_STRING("j");
+                } else {
+                    register_code(KC_H);
+                }
+            } else { //is released
+                unregister_code(KC_J);
+                unregister_code(KC_H);
             }
             break;
     }
@@ -171,8 +173,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  *      -------------------
  */
   [FUNC_LAYER] = LAYOUT(GIT_STASH, GIT_STASH_POP, KC_LSFT,
-                             TD(QUOT_LAYR), LT(1, KC_SPACE), LCTL(KC_F6),
-                             COPY_PASTE, KC_DOT, LCTL(KC_F3)),
+                             KC_DOT, LT(1, KC_SPACE), LCTL(KC_F6),
+                             COPY_PASTE, TD(QUOT_LAYR), LCTL(KC_F3)),
 /*
  *            ___________________
  *           /TD(0)/ I   /  P  /
