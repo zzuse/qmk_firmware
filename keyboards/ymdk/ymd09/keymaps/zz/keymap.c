@@ -77,7 +77,7 @@ typedef struct {
 
 enum {
     TAB_1,
-    QUOT_LAYR,
+    QUO_LAYER,
     VIM_J_H,
     SOME_OTHER_DANCE,
 };
@@ -87,7 +87,8 @@ void x_finished(tap_dance_state_t *state, void *user_data);
 void x_reset(tap_dance_state_t *state, void *user_data);
 void ql_finished(tap_dance_state_t *state, void *user_data);
 void ql_reset(tap_dance_state_t *state, void *user_data);
-void tap_j_hold_h(tap_dance_state_t *state, void *user_data);
+void j_finished(tap_dance_state_t *state, void *user_data);
+void j_reset(tap_dance_state_t *state, void *user_data);
 
 td_state_t cur_dance(tap_dance_state_t *state) {
     if(state->count == 1) {
@@ -114,10 +115,15 @@ static td_tap_t ql_tap_state = {
     .state = TD_NONE
 };
 
+static td_tap_t j_tap_state = {
+    .is_press_action = true,
+    .state = TD_NONE
+};
+
 tap_dance_action_t tap_dance_actions[] = {
     [TAB_1]     = ACTION_TAP_DANCE_FN_ADVANCED(NULL, x_finished, x_reset),
-    [QUOT_LAYR] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, ql_finished, ql_reset),
-    [VIM_J_H]   = ACTION_TAP_DANCE_FN         (tap_j_hold_h),
+    [QUO_LAYER] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, ql_finished, ql_reset),
+    [VIM_J_H]   = ACTION_TAP_DANCE_FN_ADVANCED(NULL, j_finished, j_reset),
 };
 
 // feature 3: key override
@@ -127,6 +133,18 @@ const key_override_t dot_key_override =
 const key_override_t** key_overrides = (const key_override_t*[]){
     &dot_key_override,
     NULL
+};
+
+// feature 4: combo
+enum combos {
+    AS_ESC,
+    COMBO_LENGTH
+};
+uint16_t COMBO_LEN = COMBO_LENGTH;
+const uint16_t PROGMEM ab_combo[] = {KC_A, KC_S, COMBO_END};
+
+combo_t key_combos[COMBO_COUNT] = {
+    [AS_ESC] = COMBO(ab_combo, KC_ESC),
 };
 
 // layouts
@@ -149,7 +167,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  */
   [WASD_LAYER] = LAYOUT(        TD(TAB_1),   KC_W,          KC_E,
                                      KC_A,   KC_S,          KC_D,
-                                  KC_LSFT,   TD(QUOT_LAYR), KC_SPACE),
+                                  KC_LSFT,   TD(QUO_LAYER), KC_SPACE),
 /*
  *            ___________________
  *           /TD(0)/ W   /  E  /
@@ -161,7 +179,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  */
   [FUNC_LAYER] = LAYOUT(GIT_STASH, GIT_STASH_POP, KC_LSFT,
                              KC_DOT, LT(1, KC_SPACE), LCTL(KC_F6),
-                             COPY_PASTE, TD(QUOT_LAYR), LCTL(KC_F3)),
+                             COPY_PASTE, TD(QUO_LAYER), LCTL(KC_F3)),
 /*
  *            ___________________
  *           /TD(0)/ I   /  P  /
@@ -173,7 +191,19 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  */
   [VIM_LAYER] = LAYOUT(    TD(TAB_1),   KC_I,          KC_P,
                            TD(VIM_J_H), KC_K,          KC_L,
-                             KC_N,      TD(QUOT_LAYR), KC_SPACE),
+                             KC_N,      TD(QUO_LAYER), KC_SPACE),
+/*
+*            ___________________
+*           /     / --  /     /
+*          /-----/-----/-----/
+*         /     / --  /     /
+*        /-----/-----/-----/
+*       /  E  /TD(1)/     /
+*      -------------------
+ */
+[MUSIC_LAYER] = LAYOUT(    KC_C,   _______,          KC_F,
+                           KC_D,   _______,          KC_G,
+                           KC_E,   TD(QUO_LAYER),    KC_A),
 };
 
 // post init
@@ -219,6 +249,13 @@ void x_reset(tap_dance_state_t *state, void *user_data) {
     x_tap_state.state = TD_NONE;
 }
 
+/*
+ * Tap = WASD LAYER
+ * Hold = FUNC_LAYER
+ * Double Tap = VIM LAYER
+ * Double Tap and Hold =
+ * Triple Tap = MUSIC LAYER
+ */
 void ql_finished(tap_dance_state_t *state, void *user_data) {
     ql_tap_state.state = cur_dance(state);
     switch (ql_tap_state.state) {
@@ -228,6 +265,7 @@ void ql_finished(tap_dance_state_t *state, void *user_data) {
             } else {
                 layer_off(FUNC_LAYER);
                 layer_off(VIM_LAYER);
+                layer_off(MUSIC_LAYER);
                 layer_on(WASD_LAYER);
             }
             break;
@@ -237,17 +275,29 @@ void ql_finished(tap_dance_state_t *state, void *user_data) {
             } else {
                 layer_off(VIM_LAYER);
                 layer_off(WASD_LAYER);
+                layer_off(MUSIC_LAYER);
                 layer_on(FUNC_LAYER);
             }
             break;
         case TD_DOUBLE_TAP:
             if(layer_state_is(VIM_LAYER)) {
                 ;
+            } else {
+                layer_off(WASD_LAYER);
+                layer_off(FUNC_LAYER);
+                layer_off(MUSIC_LAYER);
+                layer_on(VIM_LAYER);
             }
-            layer_off(WASD_LAYER);
-            layer_off(FUNC_LAYER);
-            layer_on(VIM_LAYER);
             break;
+        case TD_TRIPLE_TAP:
+            if(layer_state_is(MUSIC_LAYER)) {
+                ;
+            } else {
+                layer_off(WASD_LAYER);
+                layer_off(FUNC_LAYER);
+                layer_off(VIM_LAYER);
+                layer_on(MUSIC_LAYER);
+            }
         default:
             break;
     }
@@ -257,14 +307,22 @@ void ql_reset(tap_dance_state_t *state, void *user_data) {
     ql_tap_state.state = TD_NONE;
 }
 
-void tap_j_hold_h(tap_dance_state_t *state, void *user_data) {
-    if (state->count == 1) {
-        if(state->interrupted || !state->pressed) {
-            tap_code16(KC_J);
-        }
-        else tap_code(KC_H);
-    } else if (state->count > 1) {
-        tap_code16(KC_J);
+void j_finished(tap_dance_state_t *state, void *user_data) {
+    j_tap_state.state = cur_dance(state);
+    switch(j_tap_state.state) {
+        case TD_SINGLE_TAP: register_code(KC_J);break;
+        case TD_SINGLE_HOLD: register_code(KC_H); break;
+        case TD_DOUBLE_HOLD: register_code(KC_J);break;
+        default: break;
     }
-    reset_tap_dance(state);
+}
+
+void j_reset(tap_dance_state_t *state, void *user_data) {
+    switch (j_tap_state.state) {
+        case TD_SINGLE_TAP: unregister_code(KC_J); break;
+        case TD_SINGLE_HOLD: unregister_code(KC_H);break;
+        case TD_DOUBLE_HOLD: unregister_code(KC_J);break;
+        default: break;
+    }
+    j_tap_state.state = TD_NONE;
 }
