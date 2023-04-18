@@ -137,15 +137,47 @@ const key_override_t** key_overrides = (const key_override_t*[]){
 
 // feature 4: combo
 enum combos {
-    AS_ESC,
-    COMBO_LENGTH
+    A_12D,
+    S_2D,
+    F_12,
+    G_12456,
+    H_12D56,
+    J_12D6,
 };
-uint16_t COMBO_LEN = COMBO_LENGTH;
-const uint16_t PROGMEM ab_combo[] = {KC_A, KC_S, COMBO_END};
+const uint16_t PROGMEM a12d_combo[] = {KC_1, KC_2, KC_D, COMBO_END};
+const uint16_t PROGMEM s2d_combo[] = {KC_2, KC_D, COMBO_END};
+const uint16_t PROGMEM f12_combo[] = {KC_1, KC_2, COMBO_END};
+const uint16_t PROGMEM g12456_combo[] = {KC_1, KC_2, KC_4, KC_5, KC_6, COMBO_END};
+const uint16_t PROGMEM h12d56_combo[] = {KC_1, KC_2, KC_D, KC_5, KC_6, COMBO_END};
+const uint16_t PROGMEM j12d6_combo[] = {KC_1, KC_2, KC_D, KC_6, COMBO_END};
 
 combo_t key_combos[COMBO_COUNT] = {
-    [AS_ESC] = COMBO(ab_combo, KC_ESC),
+    [A_12D]   = COMBO(a12d_combo, KC_A),
+    [S_2D]    = COMBO(s2d_combo, KC_S),
+    [F_12]    = COMBO(f12_combo, KC_F),
+    [G_12456] = COMBO(g12456_combo, KC_G),
+    [H_12D56] = COMBO(h12d56_combo, KC_H),
+    [J_12D6]  = COMBO(j12d6_combo, KC_J),
 };
+
+bool process_combo_key_release(uint16_t combo_index, combo_t *combo, uint8_t key_index, uint16_t keycode) {
+    switch (combo_index) {
+        case A_12D:
+            switch(keycode) {
+                case KC_1:
+                    unregister_code(KC_1);
+                    break;
+                case KC_2:
+                    unregister_code(KC_2);
+                    break;
+                case KC_D:
+                    unregister_code(KC_D);
+                    break;
+            }
+            return false; // do not release combo
+    }
+    return false;
+}
 
 // layouts
 enum layer_names {
@@ -193,17 +225,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                            TD(VIM_J_H), KC_K,          KC_L,
                              KC_N,      TD(QUO_LAYER), KC_SPACE),
 /*
-*            ___________________
-*           /     / --  /     /
-*          /-----/-----/-----/
-*         /     / --  /     /
-*        /-----/-----/-----/
-*       /  E  /TD(1)/     /
-*      -------------------
- */
-[MUSIC_LAYER] = LAYOUT(    KC_C,   _______,          KC_F,
-                           KC_D,   _______,          KC_G,
-                           KC_E,   TD(QUO_LAYER),    KC_A),
+ *            ___________________
+ *           /  1  / X   /  4  /
+ *          /-----/-----/-----/
+ *         /  2  /  Z  /  5  /
+ *        /-----/-----/-----/
+ *       /  D  /TD(1)/  6  /
+ *      -------------------
+*/
+  [MUSIC_LAYER] = LAYOUT(  KC_1,   KC_X,          KC_4,
+                           KC_2,   KC_Z,          KC_5,
+                           KC_D,   TD(QUO_LAYER), KC_6),
 };
 
 // post init
