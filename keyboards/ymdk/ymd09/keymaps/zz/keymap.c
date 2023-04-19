@@ -127,13 +127,13 @@ tap_dance_action_t tap_dance_actions[] = {
 };
 
 // feature 3: key override
-const key_override_t dot_key_override =
-    ko_make_basic(MOD_MASK_SHIFT, KC_DOT, KC_QUES);
-
-const key_override_t** key_overrides = (const key_override_t*[]){
-    &dot_key_override,
-    NULL
-};
+//const key_override_t dot_key_override =
+//    ko_make_basic(MOD_MASK_SHIFT, KC_DOT, KC_QUES);
+//
+//const key_override_t** key_overrides = (const key_override_t*[]){
+//    &dot_key_override,
+//    NULL
+//};
 
 // feature 4: combo
 enum combos {
@@ -161,20 +161,18 @@ combo_t key_combos[COMBO_COUNT] = {
 };
 
 bool process_combo_key_release(uint16_t combo_index, combo_t *combo, uint8_t key_index, uint16_t keycode) {
+    uprintf("Combo release: kc: 0x%04X, index: %u, combo_index %u\n", keycode, key_index, combo_index );
     switch (combo_index) {
         case A_12D:
-            switch(keycode) {
-                case KC_1:
-                    unregister_code(KC_1);
-                    break;
-                case KC_2:
-                    unregister_code(KC_2);
-                    break;
-                case KC_D:
-                    unregister_code(KC_D);
-                    break;
+            if (key_index == 0) {
+            } else if (key_index == 1) {
+            } else if (key_index == 2) {
             }
-            return false; // do not release combo
+            return true;
+        case S_2D:
+            return true;
+        case F_12:
+            return true;
     }
     return false;
 }
