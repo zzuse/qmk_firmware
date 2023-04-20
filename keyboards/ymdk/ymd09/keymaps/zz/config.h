@@ -24,7 +24,7 @@
 #define COMBO_COUNT 6
 #define COMBO_PROCESS_KEY_RELEASE
 #define COMBO_TERM 25        // how quickly all combo keys must be pressed in succession to trigger
-#deinfe COMBO_SHOULD_TRIGGER
+#define COMBO_SHOULD_TRIGGER
 //#define COMBO_MUST_HOLD_MODS // if a combo triggers a modifier, only trigger when the combo is held
 //#define COMBO_HOLD_TERM 175
 //#define COMBO_TERM 200
