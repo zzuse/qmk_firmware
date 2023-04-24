@@ -1,4 +1,4 @@
-/* Copyright 2021 Andrzej Ressel (andrzej.ressel@gmail.com)
+/* Copyright 2019 ashpil
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,20 +16,13 @@
 
 #pragma once
 
+// place overrides here
 
-#define MATRIX_ROW_PINS { E6, F0, D6, D2, B6 }
-#define MATRIX_COL_PINS { F5, C7, B7, B2, B4 }
 
-#define DIODE_DIRECTION COL2ROW
-
-#define RGB_DI_PIN D5
-#define RGBLED_NUM 40
-#define RGBLIGHT_HUE_STEP 8
-#define RGBLIGHT_SAT_STEP 8
-#define RGBLIGHT_VAL_STEP 8
-#define RGBLIGHT_LIMIT_VAL 111 /* The maximum brightness level */
-
-#define RGB_DISABLE_WHEN_USB_SUSPENDED
-#define RGBLIGHT_EFFECT_ALTERNATING
-#define RGBLIGHT_EFFECT_BREATHING
-#define RGBLIGHT_EFFECT_RAINBOW_SWIRL
+/* Add combos */
+//#define EXTRA_SHORT_COMBOS
+//#define COMBO_COUNT 6
+//#define COMBO_PROCESS_KEY_RELEASE
+//#define COMBO_TERM 25        // how quickly all combo keys must be pressed in succession to trigger
+//#define COMBO_SHOULD_TRIGGER
+//#define COMBO_MUST_HOLD_MODS // if a combo triggers a modifier, only trigger when the combo is held
